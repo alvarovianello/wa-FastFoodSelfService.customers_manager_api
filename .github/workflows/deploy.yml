@@ -1,0 +1,76 @@
+name: CI/CD for Customers Manager API
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore ./src/wa-FastFoodSelfService.customers_manager_api/wa-FastFoodSelfService.customers_manager_api.csproj
+
+      - name: Build
+        run: dotnet build ./src/wa-FastFoodSelfService.customers_manager_api/wa-FastFoodSelfService.customers_manager_api.csproj --configuration Release
+
+      - name: Run Tests
+        run: dotnet test ./src/wa-FastFoodSelfService.customers_manager_api/wa-FastFoodSelfService.customers_manager_api.csproj --configuration Release
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.3.0
+
+      - name: Terraform Init
+        working-directory: terraform
+        run: terraform init
+
+      - name: Terraform Plan
+        working-directory: terraform
+        run: terraform plan
+
+      - name: Terraform Apply
+        working-directory: terraform
+        run: terraform apply -auto-approve
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v1
+        with:
+          version: 'latest'
+
+      - name: Configure kubectl
+        run: |
+          echo "${{ secrets.KUBE_CONFIG }}" > kubeconfig
+          export KUBECONFIG=$(pwd)/kubeconfig
+
+      - name: Apply Kubernetes configurations
+        run: |
+          kubectl apply -f kubernetes/wa-customersmanagerapi-configmap.yaml
+          kubectl apply -f kubernetes/wa-customersmanagerapi-deployment.yaml
+          kubectl apply -f kubernetes/wa-customersmanagerapi-hpa.yaml
+          kubectl apply -f kubernetes/wa-customersmanagerapi-pvc.yaml
+          kubectl apply -f kubernetes/wa-customersmanagerapi-service.yaml
