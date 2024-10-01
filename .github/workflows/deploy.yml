@@ -22,13 +22,13 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore ./wa-FastFoodSelfService.customers_manager_api/wa-FastFoodSelfService.customers_manager_api.csproj
+        run: dotnet restore ./Api/Api.csproj
 
       - name: Build
-        run: dotnet build ./wa-FastFoodSelfService.customers_manager_api/wa-FastFoodSelfService.customers_manager_api.csproj --configuration Release
+        run: dotnet build ./Api/Api.csproj --configuration Release
 
       - name: Run Tests
-        run: dotnet test ./wa-FastFoodSelfService.customers_manager_api/wa-FastFoodSelfService.customers_manager_api.csproj --configuration Release
+        run: dotnet test ./Api/Api.csproj --configuration Release
 
   deploy:
     runs-on: ubuntu-latest
