@@ -1,11 +1,11 @@
 data "aws_vpc" "vpc" {
-  cidr_blocks = "172.31.0.0/16"
+  cidr_block = "172.31.0.0/16"
 }
 
 data "aws_subnets" "subnets" {
   filter {
     name   = "vpc-id"
-    values = [data.aws_vpc.id]
+    values = [data.aws_vpc.vpc.id]
   }
 }
 
