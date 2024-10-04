@@ -5,7 +5,7 @@ on:
     branches:
       - main
   workflow_dispatch:
-  
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -65,7 +65,7 @@ jobs:
       - name: Apply Kubernetes configurations
         run: |
           kubectl apply -f Kubernetes/wa-customersmanagerapi-configmap.yaml
-          kubectl set image deployment/wa-customersmanagerapi-deployment wa-customersmanagerapi-container=${{ vars.DOCKER_REPOSITORY }}:latest
+          kubectl apply -f Kubernetes/wa-customersmanagerapi-deployment.yaml 
           kubectl apply -f Kubernetes/wa-customersmanagerapi-hpa.yaml
           kubectl apply -f Kubernetes/wa-customersmanagerapi-pod.yaml
           kubectl apply -f Kubernetes/wa-customersmanagerapi-pvc.yaml
