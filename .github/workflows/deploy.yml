@@ -47,7 +47,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ vars.DOCKER_REPOSITORY }}:latest -f ./Api/Dockerfile .
+          docker build -t ${{ vars.DOCKER_REPOSITORY }}:latest -f ./Docker/Dockerfile .
 
       - name: Login to Amazon ECR
         run: |
