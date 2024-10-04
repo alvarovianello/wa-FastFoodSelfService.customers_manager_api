@@ -27,5 +27,6 @@ if (app.Environment.IsDevelopment())
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHealthChecks("/api/v1/health");
 
 app.Run();
