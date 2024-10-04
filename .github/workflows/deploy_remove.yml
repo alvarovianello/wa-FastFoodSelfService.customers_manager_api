@@ -1,0 +1,32 @@
+name: Remove Deploy AWS Academy - EKS - Customers Manager API
+
+on:
+  workflow_dispatch:
+  
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: AWS Configure
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ vars.REGION_DEFAULT }}
+
+      - name: Update Kube Config
+        run: aws eks update-kubeconfig --name ${{ vars.CLUSTER_NAME }} --region ${{ vars.REGION_DEFAULT }}
+
+      - name: Remove Kubernetes configurations
+        run: |
+          kubectl delete -f Kubernetes/wa-customersmanagerapi-configmap.yaml || true
+          kubectl delete -f Kubernetes/wa-customersmanagerapi-deployment.yaml || true
+          kubectl delete -f Kubernetes/wa-customersmanagerapi-hpa.yaml || true
+          kubectl delete -f Kubernetes/wa-customersmanagerapi-pod.yaml || true
+          kubectl delete -f Kubernetes/wa-customersmanagerapi-pvc.yaml || true
+          kubectl delete -f Kubernetes/wa-customersmanagerapi-service.yaml || true

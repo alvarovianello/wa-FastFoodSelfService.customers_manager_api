@@ -44,6 +44,18 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ vars.REGION_DEFAULT }}
+
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ vars.DOCKER_REPOSITORY }}:latest -f ./Api/Dockerfile .
+
+      - name: Login to Amazon ECR
+        run: |
+          aws ecr get-login-password --region ${{ vars.REGION_DEFAULT }} | docker login --username AWS --password-stdin ${{ vars.DOCKER_REPOSITORY }}
+
+      - name: Push Docker image to ECR
+        run: |
+          docker push ${{ vars.DOCKER_REPOSITORY }}:latest
       
       - name: Update Kube Config
         run: aws eks update-kubeconfig --name ${{ vars.CLUSTER_NAME }} --region ${{ vars.REGION_DEFAULT }}
@@ -51,7 +63,8 @@ jobs:
       - name: Apply Kubernetes configurations
         run: |
           kubectl apply -f Kubernetes/wa-customersmanagerapi-configmap.yaml
-          kubectl apply -f Kubernetes/wa-customersmanagerapi-deployment.yaml
+          kubectl set image deployment/wa-customersmanagerapi-deployment wa-customersmanagerapi-container=${{ vars.DOCKER_REPOSITORY }}:latest
           kubectl apply -f Kubernetes/wa-customersmanagerapi-hpa.yaml
+          kubectl apply -f Kubernetes/wa-customersmanagerapi-pod.yaml
           kubectl apply -f Kubernetes/wa-customersmanagerapi-pvc.yaml
           kubectl apply -f Kubernetes/wa-customersmanagerapi-service.yaml
