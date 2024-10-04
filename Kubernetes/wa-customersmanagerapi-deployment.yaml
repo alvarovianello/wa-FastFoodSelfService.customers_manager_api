@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wa-customersmanagerapi-deployment
+spec:
+  template:
+    metadata:
+      name: wa-customersmanagerapi
+      labels:
+        app: wa-customersmanagerapi
+    spec:
+      containers:
+        - name: wa-customersmanagerapi-container
+          image: willmarques/wa-fastfoodselfservice.customers_manager_api:latest
+          ports:
+            - containerPort: 5002
+          envFrom:
+            - configMapRef:
+                name: wa-customersmanagerapi-configmap
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5002
+            periodSeconds: 10
+            failureThreshold: 3
+            initialDelaySeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5002
+            periodSeconds: 10
+            failureThreshold: 5
+            initialDelaySeconds: 3
+          resources:
+            requests:
+              cpu: 10m
+  replicas: 3
+  selector:
+    matchLabels:
+      app: wa-customersmanagerapi
