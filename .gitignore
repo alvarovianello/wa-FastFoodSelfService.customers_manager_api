@@ -18,3 +18,5 @@
 /UnitTests/obj
 /IntegrationTests/bin/Debug/net8.0
 /IntegrationTests/obj
+/UnitTests/CoverageReport
+/UnitTests/TestResults
