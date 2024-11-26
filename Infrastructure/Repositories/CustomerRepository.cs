@@ -1,29 +1,26 @@
-﻿using Microsoft.Extensions.Configuration;
-using Npgsql;
+﻿using Application.Interfaces;
 using Dapper;
-using Application.Interfaces;
 using Domain.Entities;
+using Microsoft.Extensions.Configuration;
 
 namespace Infrastructure.Repositories
 {
     public class CustomerRepository : ICustomerRepository
     {
-        private readonly IConfiguration _configuration;
+        private readonly IDbConnectionFactory _connectionFactory;
+        private readonly string _tablePrefix;
 
-        public CustomerRepository(IConfiguration configuration)
+        public CustomerRepository(IDbConnectionFactory connectionFactory, IConfiguration configuration)
         {
-            _configuration = configuration;
-        }
-
-        private NpgsqlConnection CreateConnection()
-        {
-            return new NpgsqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+            _connectionFactory = connectionFactory;
+            var dbType = configuration["DatabaseType"];
+            _tablePrefix = dbType == "Postgres" ? "dbo." : "";
         }
 
         public async Task AddAsync(Customer customer)
         {
-            var query = "INSERT INTO dbo.Customer (name, cpf, email) VALUES (@Name, @Cpf, @Email)";
-            using (var connection = CreateConnection())
+            var query = $"INSERT INTO {_tablePrefix}Customer (name, cpf, email) VALUES (@Name, @Cpf, @Email)";
+            using (var connection = _connectionFactory.CreateConnection())
             {
                 await connection.ExecuteAsync(query, new { customer.Name, customer.Cpf, customer.Email });
             }
@@ -31,8 +28,8 @@ namespace Infrastructure.Repositories
 
         public async Task UpdateAsync(Customer customer)
         {
-            var query = "UPDATE dbo.Customer SET name = @Name, cpf = @Cpf, email = @Email WHERE id = @Id";
-            using (var connection = CreateConnection())
+            var query = $"UPDATE {_tablePrefix}Customer SET name = @Name, cpf = @Cpf, email = @Email WHERE id = @Id";
+            using (var connection = _connectionFactory.CreateConnection())
             {
                 await connection.ExecuteAsync(query, new { customer.Name, customer.Cpf, customer.Email, customer.Id });
             }
@@ -40,8 +37,8 @@ namespace Infrastructure.Repositories
 
         public async Task<Customer?> GetByCpfAsync(string cpf)
         {
-            var query = "SELECT * FROM dbo.Customer WHERE cpf = @Cpf";
-            using (var connection = CreateConnection())
+            var query = $"SELECT * FROM {_tablePrefix}Customer WHERE cpf = @Cpf";
+            using (var connection = _connectionFactory.CreateConnection())
             {
                 return await connection.QueryFirstOrDefaultAsync<Customer>(query, new { Cpf = cpf });
             }
@@ -49,8 +46,8 @@ namespace Infrastructure.Repositories
 
         public async Task<Customer?> GetByIdAsync(int id)
         {
-            var query = "SELECT * FROM dbo.Customer WHERE id = @Id";
-            using (var connection = CreateConnection())
+            var query = $"SELECT * FROM {_tablePrefix}Customer WHERE id = @Id";
+            using (var connection = _connectionFactory.CreateConnection())
             {
                 return await connection.QueryFirstOrDefaultAsync<Customer>(query, new { Id = id });
             }
@@ -58,8 +55,8 @@ namespace Infrastructure.Repositories
 
         public async Task<IEnumerable<Customer>> GetAllAsync()
         {
-            var query = "SELECT * FROM dbo.Customer";
-            using (var connection = CreateConnection())
+            var query = $"SELECT * FROM {_tablePrefix}Customer";
+            using (var connection = _connectionFactory.CreateConnection())
             {
                 return await connection.QueryAsync<Customer>(query);
             }
@@ -67,8 +64,8 @@ namespace Infrastructure.Repositories
 
         public async Task RemoveAsync(int id)
         {
-            var query = "DELETE FROM dbo.Customer WHERE id = @Id";
-            using (var connection = CreateConnection())
+            var query = $"DELETE FROM {_tablePrefix}Customer WHERE id = @Id";
+            using (var connection = _connectionFactory.CreateConnection())
             {
                 await connection.ExecuteAsync(query, new { Id = id });
             }

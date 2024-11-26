@@ -18,7 +18,7 @@ namespace Application.UseCases
             var existingCustomer = await _customerRepository.GetByCpfAsync(customerDto.Cpf);
             if (existingCustomer != null)
             {
-                throw new Exception("O CPF informado já possui cadastro");
+                throw new InvalidOperationException("O CPF informado já possui cadastro");
             }
 
             var customer = new Customer
