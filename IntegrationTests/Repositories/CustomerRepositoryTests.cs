@@ -1,9 +1,6 @@
 ﻿using Application.Interfaces;
 using Domain.Entities;
-using Infrastructure.Configurations.Database;
-using Infrastructure.Repositories;
 using IntegrationTests.TestFixtures;
-using Microsoft.Extensions.Configuration;
 
 namespace IntegrationTests.Repositories
 {
