@@ -7,6 +7,7 @@ on:
   pull_request:
     branches:
       - main
+
 jobs:
   execute-unit-tests:
     runs-on: ubuntu-latest
@@ -51,19 +52,16 @@ jobs:
           const coverageXML = fs.readFileSync(coverageFile, 'utf8');
 
           parser(coverageXML, (err, result) => {
-            if (err) throw err;
+            if (err) {
+              throw err;
+            }
 
             const metrics = result.coverage.$;
             const coveredLines = parseInt(metrics.coveredlines, 10);
             const totalLines = parseInt(metrics.totallines, 10);
             const coveragePercent = ((coveredLines / totalLines) * 100).toFixed(2);
 
-            const summary = `
-            ### Test Coverage Summary
-            - **Code Coverage**: ${coveragePercent}%
-            - **Lines Covered**: ${coveredLines}
-            - **Total Lines**: ${totalLines}
-            `;
+            const summary = ` - **Code Coverage**: ${coveragePercent}% - **Lines Covered**: ${coveredLines} - **Total Lines**: ${totalLines}`;
 
             console.log(summary);
 
