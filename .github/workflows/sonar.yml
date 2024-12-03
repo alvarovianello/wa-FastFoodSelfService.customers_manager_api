@@ -1,3 +1,12 @@
+name: Unit Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 jobs:
   execute-unit-tests:
     runs-on: ubuntu-latest
@@ -21,7 +30,7 @@ jobs:
         run: |
           dotnet test --collect:"XPlat Code Coverage" \
             --results-directory="./TestResults" \
-            /p:CoverletOutput="./TestResults/coverage.cobertura.xml" \
+            /p:CoverletOutput="./TestResults/coverage" \
             /p:CoverletOutputFormat="cobertura"
 
       - name: Setup Node.js
@@ -37,14 +46,8 @@ jobs:
           node <<EOF
           const fs = require('fs');
           const parser = require('xml2js').parseString;
-          COVERAGE_FILE=$(find ./TestResults -name "coverage.cobertura.xml" | head -n 1)
-          if [ -f "$COVERAGE_FILE" ]; then
-            echo "Coverage file found."
-          else
-            echo "Error: Coverage file not found!" && exit 1
-          fi
 
-          const coverageFile = '$COVERAGE_PATH';
+          const coverageFile = './TestResults/coverage.cobertura.xml';
           const coverageXML = fs.readFileSync(coverageFile, 'utf8');
 
           parser(coverageXML, (err, result) => {
