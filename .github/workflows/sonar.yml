@@ -47,24 +47,27 @@ jobs:
           node <<EOF
           const fs = require('fs');
           const parser = require('xml2js').parseString;
-      
+
           const coverageFile = './TestResults/coverage.cobertura.xml';
           const coverageXML = fs.readFileSync(coverageFile, 'utf8');
-      
+
           parser(coverageXML, (err, result) => {
-            if (err) {
-              throw err;
-            }
-      
+            if (err) throw err;
+
             const metrics = result.coverage.$;
             const coveredLines = parseInt(metrics.coveredlines, 10);
             const totalLines = parseInt(metrics.totallines, 10);
             const coveragePercent = ((coveredLines / totalLines) * 100).toFixed(2);
-      
-            const summary = ` - **Code Coverage**: ${coveragePercent}% - **Lines Covered**: ${coveredLines} - **Total Lines**: ${totalLines}`;
-      
+
+            const summary = `
+            ### Test Coverage Summary
+            - **Code Coverage**: ${coveragePercent}%
+            - **Lines Covered**: ${coveredLines}
+            - **Total Lines**: ${totalLines}
+            `;
+
             console.log(summary);
-      
+
             // Save the summary to the GitHub Actions job summary
             fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
           });
