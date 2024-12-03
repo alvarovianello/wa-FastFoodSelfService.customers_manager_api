@@ -31,12 +31,12 @@ jobs:
         run: |
           dotnet test --collect:"XPlat Code Coverage" \
             --results-directory="./TestResults" \
-            /p:CoverletOutput="./TestResults/coverage" \
+            /p:CoverletOutput="./TestResults/coverage.cobertura.xml" \
             /p:CoverletOutputFormat="cobertura"
 
       - name: Parse Coverage Results
         run: |
-          COVERAGE_FILE=./TestResults/coverage.cobertura.xml
+          COVERAGE_FILE=$(find ./TestResults -name "coverage.cobertura.xml" | head -n 1)
           if [ -f "$COVERAGE_FILE" ]; then
             echo "Coverage file found."
           else
@@ -51,7 +51,7 @@ jobs:
             const parser = require('xml2js').parseString;
 
             // Read and parse the coverage XML file
-            const coverageFile = fs.readFileSync('./TestResults/coverage.cobertura.xml', 'utf8');
+            const coverageFile = fs.readFileSync('$COVERAGE_PATH', 'utf8');
             let summary = "";
             
             parser(coverageFile, (err, result) => {
