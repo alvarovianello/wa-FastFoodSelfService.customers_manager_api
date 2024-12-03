@@ -34,14 +34,14 @@ jobs:
         if: success() || failure()
         with:
           name: Tests
-          path: wa-FastFoodSelfService.customers_manager_api.UnitTests/TestResults/*.trx
+          path: wa-FastFoodSelfService.customers_manager_api/UnitTests/TestResults/*.trx
           reporter: dotnet-trx
 
       - name: Restore local tools
         run: dotnet tool restore
 
       - name: Generate coverage report
-        run: dotnet reportgenerator -reports:wa-FastFoodSelfService.customers_manager_api.UnitTests/TestResults/*/coverage.cobertura.xml -targetdir:./coverage -reporttypes:MarkdownSummary
+        run: dotnet reportgenerator -reports:wa-FastFoodSelfService.customers_manager_api/UnitTests/TestResults/*/coverage.cobertura.xml -targetdir:./coverage -reporttypes:MarkdownSummary
           
       - name: Create check with coverage report
         uses: LouisBrunner/checks-action@v2.0.0
