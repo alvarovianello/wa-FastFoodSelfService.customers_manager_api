@@ -52,7 +52,10 @@ jobs:
         run: dotnet tool restore
 
       - name: Generate coverage report
-        run: dotnet reportgenerator -reports:${{ env.COVERAGE_PATH }} -targetdir:./coverage -reporttypes:MarkdownSummary
+        run: |
+          # Garantir que o diretório de cobertura exista
+          mkdir -p ./coverage
+          dotnet reportgenerator -reports:${{ env.COVERAGE_PATH }} -targetdir:./coverage -reporttypes:MarkdownSummary
 
       - name: Create check with coverage report
         uses: LouisBrunner/checks-action@v2.0.0
@@ -62,4 +65,4 @@ jobs:
           name: Code coverage
           conclusion: ${{ job.status }}
           output: '{"summary":"Code coverage"}'
-          output_text_description_file: coverage/Summary.md
+          output_text_description_file: ./coverage/Summary.md
