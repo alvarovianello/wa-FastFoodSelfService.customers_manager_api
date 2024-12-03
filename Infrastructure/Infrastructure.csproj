@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Configurations\" />
     <Folder Include="Data\" />
     <Folder Include="ExternalServices\" />
     <Folder Include="Repositories\" />
@@ -15,8 +14,10 @@
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.1.35" />
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="9.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
     <PackageReference Include="Npgsql" Version="8.0.4" />
+    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.10" />
   </ItemGroup>
 
   <ItemGroup>
