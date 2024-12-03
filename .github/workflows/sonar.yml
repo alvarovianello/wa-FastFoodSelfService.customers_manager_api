@@ -68,9 +68,9 @@ jobs:
             echo "Coverage file not found!"
             exit 1
           fi
-	  
+
       - name: List TestResults Directory
         run: ls -R ./TestResults
-	
+
       - name: SonarCloud End Analysis
         run: dotnet sonarscanner end /d:sonar.token=${{ secrets.SONAR_TOKEN }}
