@@ -38,8 +38,14 @@ jobs:
             /p:CoverletOutput="./TestResults/coverage.cobertura.xml" \
             /p:CoverletOutputFormat="cobertura"
           echo "Searching for the coverage file..."
-          export COVERAGE_PATH=$(find ./TestResults -name "coverage.cobertura.xml")
-          echo "Coverage file found at: $COVERAGE_PATH"
+          COVERAGE_PATH=$(find ./TestResults -name "coverage.cobertura.xml")
+          if [ -z "$COVERAGE_PATH" ]; then
+            echo "Error: Coverage file not found!"
+            exit 1
+          else
+            echo "Coverage file found at: $COVERAGE_PATH"
+            echo "COVERAGE_PATH=$COVERAGE_PATH" >> $GITHUB_ENV
+          fi
 
       - name: SonarCloud Begin Analysis
         run: |
@@ -48,7 +54,7 @@ jobs:
             /o:"alvarovianello" \
             /d:sonar.token=${{ secrets.SONAR_TOKEN }} \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.cs.opencover.reportsPaths="$COVERAGE_PATH"
+            /d:sonar.cs.opencover.reportsPaths="${{ env.COVERAGE_PATH }}"
 
       - name: SonarCloud End Analysis
         run: dotnet sonarscanner end /d:sonar.token=${{ secrets.SONAR_TOKEN }}
