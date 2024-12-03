@@ -1,13 +1,3 @@
-name: Unit Tests
-
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-
 jobs:
   execute-unit-tests:
     runs-on: ubuntu-latest
@@ -34,8 +24,19 @@ jobs:
             /p:CoverletOutput="./TestResults/coverage.cobertura.xml" \
             /p:CoverletOutputFormat="cobertura"
 
-      - name: Parse Coverage Results
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install XML Parser
+        run: npm install xml2js
+
+      - name: Parse Coverage and Generate Summary
         run: |
+          node <<EOF
+          const fs = require('fs');
+          const parser = require('xml2js').parseString;
           COVERAGE_FILE=$(find ./TestResults -name "coverage.cobertura.xml" | head -n 1)
           if [ -f "$COVERAGE_FILE" ]; then
             echo "Coverage file found."
@@ -43,33 +44,27 @@ jobs:
             echo "Error: Coverage file not found!" && exit 1
           fi
 
-      - name: Generate Coverage Summary
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const fs = require('fs');
-            const parser = require('xml2js').parseString;
+          const coverageFile = '$COVERAGE_PATH';
+          const coverageXML = fs.readFileSync(coverageFile, 'utf8');
 
-            // Read and parse the coverage XML file
-            const coverageFile = fs.readFileSync('$COVERAGE_PATH', 'utf8');
-            let summary = "";
-            
-            parser(coverageFile, (err, result) => {
-              if (err) throw err;
+          parser(coverageXML, (err, result) => {
+            if (err) throw err;
 
-              // Extract relevant data
-              const coverageMetrics = result.coverage.$;
-              const coveredLines = parseInt(coverageMetrics.coveredlines, 10);
-              const totalLines = parseInt(coverageMetrics.totallines, 10);
-              const coveragePercent = ((coveredLines / totalLines) * 100).toFixed(2);
+            const metrics = result.coverage.$;
+            const coveredLines = parseInt(metrics.coveredlines, 10);
+            const totalLines = parseInt(metrics.totallines, 10);
+            const coveragePercent = ((coveredLines / totalLines) * 100).toFixed(2);
 
-              summary = `
-              ### Test Coverage Summary
-              - **Code Coverage**: ${coveragePercent}%
-              - **Lines Covered**: ${coveredLines}
-              - **Total Lines**: ${totalLines}
-              `;
-            });
+            const summary = `
+            ### Test Coverage Summary
+            - **Code Coverage**: ${coveragePercent}%
+            - **Lines Covered**: ${coveredLines}
+            - **Total Lines**: ${totalLines}
+            `;
 
-            // Append the summary to the job's summary
-            core.summary.addRaw(summary).write();
+            console.log(summary);
+
+            // Save the summary to the GitHub Actions job summary
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
+          });
+          EOF
