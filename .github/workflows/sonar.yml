@@ -7,16 +7,9 @@ on:
   pull_request:
     branches:
       - main
-  workflow_dispatch:
-    inputs:
-      start:
-        description: 'Start Unit Tests'
-        required: false
-        default: 'true'
 
 jobs:
   execute-unit-tests:
-    name: Execute Unit Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -26,7 +19,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '8.0'
+          dotnet-version: 8.0
 
       - name: Restore dependencies
         run: dotnet restore
@@ -41,8 +34,42 @@ jobs:
             /p:CoverletOutput="./TestResults/coverage" \
             /p:CoverletOutputFormat="cobertura"
 
-      - name: Upload Coverage Report
-        uses: actions/upload-artifact@v3
+      - name: Parse Coverage Results
+        run: |
+          COVERAGE_FILE=./TestResults/coverage.cobertura.xml
+          if [ -f "$COVERAGE_FILE" ]; then
+            echo "Coverage file found."
+          else
+            echo "Error: Coverage file not found!" && exit 1
+          fi
+
+      - name: Generate Coverage Summary
+        uses: actions/github-script@v6
         with:
-          name: Coverage Report
-          path: TestResults/coverage.cobertura.xml
+          script: |
+            const fs = require('fs');
+            const parser = require('xml2js').parseString;
+
+            // Read and parse the coverage XML file
+            const coverageFile = fs.readFileSync('./TestResults/coverage.cobertura.xml', 'utf8');
+            let summary = "";
+            
+            parser(coverageFile, (err, result) => {
+              if (err) throw err;
+
+              // Extract relevant data
+              const coverageMetrics = result.coverage.$;
+              const coveredLines = parseInt(coverageMetrics.coveredlines, 10);
+              const totalLines = parseInt(coverageMetrics.totallines, 10);
+              const coveragePercent = ((coveredLines / totalLines) * 100).toFixed(2);
+
+              summary = `
+              ### Test Coverage Summary
+              - **Code Coverage**: ${coveragePercent}%
+              - **Lines Covered**: ${coveredLines}
+              - **Total Lines**: ${totalLines}
+              `;
+            });
+
+            // Append the summary to the job's summary
+            core.summary.addRaw(summary).write();
