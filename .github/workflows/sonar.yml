@@ -34,9 +34,9 @@ jobs:
             /o:"alvarovianello" \
             /d:sonar.token=${{ secrets.SONAR_TOKEN }} \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.cs.opencover.reportsPaths="TestResults/coverage.cobertura.xml"
-			/d:sonar.cs.coveragePlugin=opencover
-
+            /d:sonar.cs.opencover.reportsPaths="TestResults/coverage.cobertura.xml" \
+	    /d:sonar.cs.coveragePlugin=opencover
+     
       - name: Build the project
         run: dotnet build wa-FastFoodSelfService.customers_manager_api.sln
 
@@ -69,8 +69,8 @@ jobs:
             exit 1
           fi
 		  
-	  - name: List TestResults Directory
+      - name: List TestResults Directory
         run: ls -R ./TestResults
 		
-	  - name: SonarCloud End Analysis
+      - name: SonarCloud End Analysis
         run: dotnet sonarscanner end /d:sonar.token=${{ secrets.SONAR_TOKEN }}
