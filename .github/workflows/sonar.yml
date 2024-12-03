@@ -32,9 +32,9 @@ jobs:
           dotnet sonarscanner begin \
             /k:"alvarovianello_wa-FastFoodSelfService.customers_manager_api" \
             /o:"alvarovianello" \
-            /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.login=${{ secrets.SONAR_TOKEN }} \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.cs.opencover.reportsPaths="coverage.opencover.xml"
+            /d:sonar.cs.opencover.reportsPaths="TestResults/coverage.opencover.xml" \
             /d:sonar.projectBaseDir=$(pwd)
 
       - name: Build the project
@@ -49,4 +49,4 @@ jobs:
             /p:CoverletOutputFormat="opencover"
 
       - name: SonarCloud End Analysis
-        run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+        run: dotnet sonarscanner end /d:sonar.login=${{ secrets.SONAR_TOKEN }}
