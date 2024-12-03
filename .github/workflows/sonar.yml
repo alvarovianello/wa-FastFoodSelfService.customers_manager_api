@@ -32,7 +32,7 @@ jobs:
             /o:"alvarovianello" \
             /d:sonar.token=${{ secrets.SONAR_TOKEN }} \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.cs.opencover.reportsPaths="${{ env.COVERAGE_PATH }}"
+            /d:sonar.cs.opencover.reportsPaths="TestResults/coverage.cobertura.xml"
 
       - name: Build the project
         run: dotnet build wa-FastFoodSelfService.customers_manager_api.sln
@@ -51,7 +51,9 @@ jobs:
             exit 1
           else
             echo "Coverage file found at: $COVERAGE_PATH"
-            echo "COVERAGE_PATH=$COVERAGE_PATH" >> $GITHUB_ENV
+            # Copy the coverage file to the desired location
+            cp "$COVERAGE_PATH" "./TestResults/coverage.cobertura.xml"
+            echo "Coverage file copied to: ./TestResults/coverage.cobertura.xml"
           fi
 
       - name: SonarCloud End Analysis
