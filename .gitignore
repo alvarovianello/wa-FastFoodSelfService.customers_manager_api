@@ -22,3 +22,5 @@
 /IntegrationTests/obj/Debug/net8.0
 /UnitTests/CoverageReport
 /UnitTests/TestResults
+.env
+
