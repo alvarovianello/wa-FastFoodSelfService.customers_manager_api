@@ -1,42 +1,43 @@
-name: SonarQube Analysis
+name: SonarCloud Analysis
 
 on:
   push:
     branches:
-      - main  # ou sua branch de produção
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  sonarqube:
+  sonarcloud:
+    name: SonarCloud Analysis
     runs-on: ubuntu-latest
 
     steps:
-      # Passo 1: Checkout do código
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      # Passo 2: Instalar Node.js e npm
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
         with:
-          node-version: '16'  # Defina a versão do Node.js
+          dotnet-version: 8.0
 
-      # Passo 3: Instalar SonarScanner via npm
       - name: Install SonarScanner
-        run: npm install -g sonar-scanner
+        run: dotnet tool install --global dotnet-sonarscanner
 
-      # Passo 4: Executar a análise SonarQube
-      - name: Run SonarQube Analysis
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: "https://sonarcloud.io/"
-        run: |
-          sonar-scanner \
-            -Dsonar.projectKey=alvarovianello_wa-FastFoodSelfService.customers_manager_api \
-            -Dsonar.host.url=$SONAR_HOST_URL \
-            -Dsonar.login=$SONAR_TOKEN \
-            -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
-            -Dsonar.pullrequest.branch=${{ github.head_ref }} \
-            -Dsonar.pullrequest.base=${{ github.base_ref }} \
-            -Dsonar.sources=src \
-            -Dsonar.tests=tests \
-            -Dsonar.language=csharp
+      - name: SonarCloud Begin Analysis
+        run: dotnet sonarscanner begin \
+          /k:"alvarovianello_wa-FastFoodSelfService.customers_manager_api" \
+          /o:"alvarovianello" \
+          /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
+          /d:sonar.host.url="https://sonarcloud.io" \
+          /d:sonar.cs.opencover.reportsPaths="coverage.opencover.xml"
+
+      - name: Build the project
+        run: dotnet build
+
+      - name: Run Tests and Generate Coverage
+        run: dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
+
+      - name: SonarCloud End Analysis
+        run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
