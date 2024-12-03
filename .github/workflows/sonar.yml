@@ -13,8 +13,6 @@ jobs:
     name: SonarCloud Analysis
     runs-on: ubuntu-latest
 
-    environment: production
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -27,8 +25,17 @@ jobs:
       - name: Install SonarScanner
         run: dotnet tool install --global dotnet-sonarscanner
 
+      - name: SonarCloud Begin Analysis
+        run: |
+          dotnet sonarscanner begin \
+            /k:"alvarovianello_wa-FastFoodSelfService.customers_manager_api" \
+            /o:"alvarovianello" \
+            /d:sonar.token=${{ secrets.SONAR_TOKEN }} \
+            /d:sonar.host.url="https://sonarcloud.io" \
+            /d:sonar.cs.opencover.reportsPaths="TestResults/coverage.cobertura.xml"
+
       - name: Build the project
-        run: dotnet build
+        run: dotnet build wa-FastFoodSelfService.customers_manager_api.sln
 
       - name: Run Tests and Generate Coverage
         run: |
@@ -44,17 +51,10 @@ jobs:
             exit 1
           else
             echo "Coverage file found at: $COVERAGE_PATH"
-            echo "COVERAGE_PATH=$COVERAGE_PATH" >> $GITHUB_ENV
+            # Copy the coverage file to the desired location
+            cp "$COVERAGE_PATH" "./TestResults/coverage.cobertura.xml"
+            echo "Coverage file copied to: ./TestResults/coverage.cobertura.xml"
           fi
-
-      - name: SonarCloud Begin Analysis
-        run: |
-          dotnet sonarscanner begin \
-            /k:"alvarovianello_wa-FastFoodSelfService.customers_manager_api" \
-            /o:"alvarovianello" \
-            /d:sonar.token=${{ secrets.SONAR_TOKEN }} \
-            /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.cs.opencover.reportsPaths="${{ env.COVERAGE_PATH }}"
 
       - name: SonarCloud End Analysis
         run: dotnet sonarscanner end /d:sonar.token=${{ secrets.SONAR_TOKEN }}
