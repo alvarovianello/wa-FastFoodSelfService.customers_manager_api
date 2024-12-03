@@ -3,28 +3,28 @@ name: SonarQube Analysis
 on:
   push:
     branches:
-      - main
+      - main  # ou sua branch de produção
 
 jobs:
   sonarqube:
     runs-on: ubuntu-latest
 
     steps:
+      # Passo 1: Checkout do código
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up .NET
-        uses: actions/setup-dotnet@v3
+      # Passo 2: Instalar Node.js e npm
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          dotnet-version: '8.0'
+          node-version: '16'  # Defina a versão do Node.js
 
+      # Passo 3: Instalar SonarScanner via npm
       - name: Install SonarScanner
-        run: |
-          wget https://github.com/SonarSource/sonar-scanner-cli/releases/download/4.8.0.2856/sonar-scanner-cli-4.8.0.2856-linux.zip
-          unzip sonar-scanner-cli-4.8.0.2856-linux.zip
-          sudo mv sonar-scanner-4.8.0.2856-linux /opt/sonar-scanner
-          sudo ln -s /opt/sonar-scanner/bin/sonar-scanner /usr/local/bin/sonar-scanner
+        run: npm install -g sonar-scanner
 
+      # Passo 4: Executar a análise SonarQube
       - name: Run SonarQube Analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
