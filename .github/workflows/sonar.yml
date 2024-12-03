@@ -46,9 +46,11 @@ jobs:
             --logger:"trx" \
             /p:CoverletOutput="./TestResults/coverage.opencover.xml" \
             /p:CoverletOutputFormat="opencover"
+          echo "Listing contents of TestResults directory:"
+          ls -l ./TestResults
 
       - name: Debug Test Results
         run: ls -l ./TestResults
 
       - name: SonarCloud End Analysis
-        run: dotnet sonarscanner end /d:sonar.login=${{ secrets.SONAR_TOKEN }}
+        run: dotnet sonarscanner end /d:sonar.token=${{ secrets.SONAR_TOKEN }}
