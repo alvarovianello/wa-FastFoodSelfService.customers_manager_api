@@ -23,9 +23,9 @@ namespace IntegrationTests.Controllers
             var expectedCustomer = new CustomerDto
             {
                 Id = 1,
-                Name = "Álvaro Oliveira",
-                Cpf = "40851368875",
-                Email = "alvaro@email.com"
+                Name = "Cliente Anônimo",
+                Cpf = "12345678909",
+                Email = "anonimo@email.com"
             };
 
             // Act

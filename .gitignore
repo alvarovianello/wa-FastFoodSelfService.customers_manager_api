@@ -16,7 +16,9 @@
 /Infrastructure/obj
 /UnitTests/bin/Debug/net8.0
 /UnitTests/obj
+/UnitTests/obj/Debug/net8.0
 /IntegrationTests/bin/Debug/net8.0
 /IntegrationTests/obj
+/IntegrationTests/obj/Debug/net8.0
 /UnitTests/CoverageReport
 /UnitTests/TestResults

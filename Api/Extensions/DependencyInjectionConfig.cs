@@ -1,6 +1,7 @@
 ﻿using Application.Interfaces;
 using Application.UseCases;
 using Infrastructure.Configurations.Database;
+using Infrastructure.Data.Initializer;
 using Infrastructure.Repositories;
 
 namespace Api.Extensions
@@ -24,6 +25,9 @@ namespace Api.Extensions
             {
                 services.AddSingleton<IDbConnectionFactory, PostgreSqlConnectionFactory>();
             }
+
+            // Inicializador do banco de dados
+            services.AddSingleton<DatabaseInitializer>();
 
             //Customer
             services.AddScoped<ICustomerRepository, CustomerRepository>();
