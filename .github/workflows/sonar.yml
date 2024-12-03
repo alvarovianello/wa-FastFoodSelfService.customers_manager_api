@@ -1,61 +1,71 @@
-name: Unit Tests
+name: "Build"
 
 on:
   push:
     branches:
       - main
+    paths-ignore:
+      - "**/*.md"
+      - "**/*.gitignore"
+      - "**/*.gitattributes"
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - "**/*.md"
+      - "**/*.gitignore"
+      - "**/*.gitattributes"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
 
 jobs:
-  execute-unit-tests:
+  build:
+    name: Build
     runs-on: ubuntu-latest
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+      DOTNET_NOLOGO: true
+      DOTNET_GENERATE_ASPNET_CERTIFICATE: false
+      DOTNET_ADD_GLOBAL_TOOLS_TO_PATH: false
+      DOTNET_MULTILEVEL_LOOKUP: 0
+      DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION: true
+      TERM: xterm
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.302
 
-      - name: Restore dependencies
+      - name: Restore
         run: dotnet restore
 
-      - name: Build the solution
+      - name: Build
         run: dotnet build --configuration Release --no-restore
 
-      - name: Run Tests and Collect Coverage
-        run: |
-          dotnet test --collect:"XPlat Code Coverage" \
-            --results-directory="./TestResults" \
-            --logger:"trx" \
-            /p:CoverletOutput="./TestResults/coverage.cobertura.xml" \
-            /p:CoverletOutputFormat="cobertura"
-          echo "Searching for the coverage file..."
-          COVERAGE_PATH=$(find ./TestResults -name "coverage.cobertura.xml" | head -n 1)
-          TRX_PATH=$(find ./TestResults -name "*.trx" | head -n 1)
-          echo "COVERAGE_PATH=$COVERAGE_PATH" >> $GITHUB_ENV
-          echo "TRX_PATH=$TRX_PATH" >> $GITHUB_ENV
+      - name: Test
+        run: dotnet test --logger trx --collect:"XPlat Code Coverage"
 
       - name: Test Report
         uses: dorny/test-reporter@v1
         if: success() || failure()
         with:
           name: Tests
-          path: ${{ env.TRX_PATH }}
+          path: UnitTests/TestResults/*.trx
           reporter: dotnet-trx
 
       - name: Restore local tools
         run: dotnet tool restore
 
       - name: Generate coverage report
-        run: |
-          # Garantir que o diretório de cobertura exista
-          mkdir -p ./coverage
-          dotnet reportgenerator -reports:${{ env.COVERAGE_PATH }} -targetdir:./coverage -reporttypes:MarkdownSummary
+        run: dotnet reportgenerator -reports:UnitTests/TestResults/*/coverage.cobertura.xml -targetdir:./coverage -reporttypes:MarkdownSummary
 
       - name: Create check with coverage report
         uses: LouisBrunner/checks-action@v2.0.0
@@ -65,4 +75,4 @@ jobs:
           name: Code coverage
           conclusion: ${{ job.status }}
           output: '{"summary":"Code coverage"}'
-          output_text_description_file: ./coverage/Summary.md
+          output_text_description_file: coverage/Summary.md
