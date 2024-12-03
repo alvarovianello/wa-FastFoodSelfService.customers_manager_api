@@ -35,8 +35,8 @@ jobs:
             /d:sonar.token=${{ secrets.SONAR_TOKEN }} \
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.cs.opencover.reportsPaths="TestResults/coverage.cobertura.xml" \
-	    /d:sonar.cs.coveragePlugin=opencover
-     
+            /d:sonar.cs.coveragePlugin=opencover
+
       - name: Build the project
         run: dotnet build wa-FastFoodSelfService.customers_manager_api.sln
 
@@ -59,7 +59,7 @@ jobs:
             echo "Coverage file copied to: ./TestResults/coverage.cobertura.xml"
           fi
 
-       - name: Display Coverage File
+      - name: Display Coverage File
         run: |
           if [ -f "./TestResults/coverage.cobertura.xml" ]; then
             echo "Coverage file content:"
@@ -68,9 +68,9 @@ jobs:
             echo "Coverage file not found!"
             exit 1
           fi
-		  
+	  
       - name: List TestResults Directory
         run: ls -R ./TestResults
-		
+	
       - name: SonarCloud End Analysis
         run: dotnet sonarscanner end /d:sonar.token=${{ secrets.SONAR_TOKEN }}
