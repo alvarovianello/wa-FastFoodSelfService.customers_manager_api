@@ -34,9 +34,7 @@ jobs:
             /o:"alvarovianello" \
             /d:sonar.token=${{ secrets.SONAR_TOKEN }} \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.cs.opencover.reportsPaths="TestResults/coverage.cobertura.xml" \
-            /d:sonar.projectBaseDir=$(pwd) \
-            /d:sonar.scanner.scanAll=false
+            /d:sonar.cs.opencover.reportsPaths="TestResults/coverage.opencover.xml"
 
       - name: Build the project
         run: dotnet build
@@ -46,8 +44,11 @@ jobs:
           dotnet test --collect:"XPlat Code Coverage" \
             --results-directory="./TestResults" \
             --logger:"trx" \
-            /p:CoverletOutput="./TestResults/coverage.cobertura.xml.xml" \
+            /p:CoverletOutput="./TestResults/coverage.opencover.xml" \
             /p:CoverletOutputFormat="opencover"
+
+      - name: Debug Test Results
+        run: ls -l ./TestResults
 
       - name: SonarCloud End Analysis
         run: dotnet sonarscanner end /d:sonar.login=${{ secrets.SONAR_TOKEN }}
