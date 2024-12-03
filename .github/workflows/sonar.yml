@@ -13,65 +13,43 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0
+          dotnet-version: 8.0.302
 
-      - name: Restore dependencies
+      - name: Restore
         run: dotnet restore
 
-      - name: Build the solution
-        run: dotnet build --no-restore --configuration Release
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
 
-      - name: Run Tests and Generate Coverage
-        run: |
-          dotnet test --collect:"XPlat Code Coverage" \
-            --results-directory="./TestResults" \
-            /p:CoverletOutput="./TestResults/coverage" \
-            /p:CoverletOutputFormat="cobertura"
+      - name: Test
+        run: dotnet test --logger trx --collect:"XPlat Code Coverage"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
         with:
-          node-version: '16'
+          name: Tests
+          path: wa-FastFoodSelfService.customers_manager_api.UnitTests/TestResults/*.trx
+          reporter: dotnet-trx
 
-      - name: Install XML Parser
-        run: npm install xml2js
+      - name: Restore local tools
+        run: dotnet tool restore
 
-      - name: Parse Coverage and Generate Summary
-        run: |
-          echo "
-          const fs = require('fs');
-          const parser = require('xml2js').parseString;
-
-          const coverageFile = './TestResults/coverage.cobertura.xml';
-          const coverageXML = fs.readFileSync(coverageFile, 'utf8');
-
-          parser(coverageXML, (err, result) => {
-            if (err) throw err;
-
-            const metrics = result.coverage.$;
-            const coveredLines = parseInt(metrics.coveredlines, 10);
-            const totalLines = parseInt(metrics.totallines, 10);
-            const coveragePercent = ((coveredLines / totalLines) * 100).toFixed(2);
-
-            const summary = `
-            ### Test Coverage Summary
-            - **Code Coverage**: ${coveragePercent}%
-            - **Lines Covered**: ${coveredLines}
-            - **Total Lines**: ${totalLines}
-            `;
-
-            console.log(summary);
-
-            // Save the summary to the GitHub Actions job summary
-            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
-          });
-          " > temp_script.js
+      - name: Generate coverage report
+        run: dotnet reportgenerator -reports:wa-FastFoodSelfService.customers_manager_api.UnitTests/TestResults/*/coverage.cobertura.xml -targetdir:./coverage -reporttypes:MarkdownSummary
           
-          node temp_script.js
-          rm temp_script.js
+      - name: Create check with coverage report
+        uses: LouisBrunner/checks-action@v2.0.0
+        if: always()
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: Code coverage
+          conclusion: ${{ job.status }}
+          output: '{"summary":"Code coverage"}'
+          output_text_description_file: coverage/Summary.md
+  
