@@ -55,7 +55,7 @@ jobs:
 
       - name: Install ReportGenerator tool
         run: |
-          dotnet tool install --global dotnet-reportgenerator-globaltool
+          dotnet tool install --global dotnet-reportgenerator-globaltool --version 5.4.1
           echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
       - name: Test Report
@@ -65,12 +65,15 @@ jobs:
           name: Tests
           path: UnitTests/TestResults/*.trx
           reporter: dotnet-trx
+      
+      - name: ReportGenerator
+        uses: danielpalme/ReportGenerator-GitHub-Action@5.4.1
+        with:
+          reports: UnitTests/TestResults/*/coverage.cobertura.xml
+          targetdir: ./coverage
 
       - name: Restore local tools
         run: dotnet tool restore
-
-      - name: Generate coverage report
-        run: dotnet reportgenerator -reports:UnitTests/TestResults/*/coverage.cobertura.xml -targetdir:./coverage -reporttypes:MarkdownSummary
 
       - name: Create check with coverage report
         uses: LouisBrunner/checks-action@v2.0.0
