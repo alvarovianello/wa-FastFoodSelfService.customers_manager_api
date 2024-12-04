@@ -53,6 +53,9 @@ jobs:
       - name: Test
         run: dotnet test --logger trx --collect:"XPlat Code Coverage"
 
+      - name: Install ReportGenerator tool
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+
       - name: Test Report
         uses: dorny/test-reporter@v1
         if: success() || failure()
