@@ -69,8 +69,10 @@ jobs:
       - name: ReportGenerator
         uses: danielpalme/ReportGenerator-GitHub-Action@5.4.1
         with:
+          name: testeAlvaro
           reports: UnitTests/TestResults/*/coverage.cobertura.xml
           targetdir: ./coverage
+          reporttypes: MarkdownSummary
 
       - name: Restore local tools
         run: dotnet tool restore
@@ -83,4 +85,4 @@ jobs:
           name: Code coverage
           conclusion: ${{ job.status }}
           output: '{"summary":"Code coverage"}'
-          output_text_description_file: coverage/index.html
+          output_text_description_file: coverage/Summary.md
