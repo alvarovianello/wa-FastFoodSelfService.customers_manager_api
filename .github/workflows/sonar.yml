@@ -54,7 +54,9 @@ jobs:
         run: dotnet test --logger trx --collect:"XPlat Code Coverage"
 
       - name: Install ReportGenerator tool
-        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+        run: |
+          dotnet tool install --global dotnet-reportgenerator-globaltool
+          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
       - name: Test Report
         uses: dorny/test-reporter@v1
